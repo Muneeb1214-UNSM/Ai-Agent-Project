@@ -95,40 +95,41 @@ if 'data' not in st.session_state: st.session_state.data = None
 if 'step' not in st.session_state: st.session_state.step = 0
 if 'score' not in st.session_state: st.session_state.score = 0
 
-# --- CORE ENGINE: NEXUS AI (USING GROQ) ---
+# --- CORE ENGINE: NEXUS AI (Fixed Model Name) ---
 def nexus_ai_engine(topic, lang):
     if not GROQ_API_KEY:
         st.error("System Error: GROQ_API_KEY missing. Please add it to Secrets.")
         return None
     
-    # Llama 3 model is free and extremely fast on Groq
-    llm = ChatGroq(model="llama3-70b-8192", groq_api_key=GROQ_API_KEY)
-    
-    prompt = f"""
-    You are 'Nexus AI', a world-class autonomous tutor. 
-    User Topic: {topic}. 
-    Instruction Language: {lang}.
-
-    1. Break the topic into 3 logical modules: Beginner, Intermediate, Advanced.
-    2. Write content in a mix of Urdu and English (Hinglish) for better understanding.
-    3. Generate 1 MCQ per module.
-    4. Provide a 7-day study plan.
-
-    Output STRICTLY in JSON:
-    {{
-        "plan": "...",
-        "modules": [
-            {{
-                "level": "...",
-                "title": "...",
-                "content": "...",
-                "quiz": {{"q": "...", "options": ["a", "b", "c"], "a": "..."}}
-            }}
-        ]
-    }}
-    """
-    
+    # NEW MODEL: 'llama-3.3-70b-versatile' is smarter and supported
+    # Alternative: 'llama-3.1-8b-instant' (faster)
     try:
+        llm = ChatGroq(model="llama-3.3-70b-versatile", groq_api_key=GROQ_API_KEY)
+        
+        prompt = f"""
+        You are 'Nexus AI', a world-class autonomous tutor. 
+        User Topic: {topic}. 
+        Instruction Language: {lang}.
+
+        1. Break the topic into 3 logical modules: Beginner, Intermediate, Advanced.
+        2. Write content in a mix of Urdu and English (Hinglish) for better understanding.
+        3. Generate 1 MCQ per module.
+        4. Provide a 7-day study plan.
+
+        Output STRICTLY in JSON:
+        {{
+            "plan": "...",
+            "modules": [
+                {{
+                    "level": "...",
+                    "title": "...",
+                    "content": "...",
+                    "quiz": {{"q": "...", "options": ["a", "b", "c"], "a": "..."}}
+                }}
+            ]
+        }}
+        """
+        
         response = llm.invoke([SystemMessage(content="You are Nexus AI. Respond ONLY in valid JSON."), HumanMessage(content=prompt)])
         clean_content = response.content.replace("```json", "").replace("```", "").strip()
         return json.loads(clean_content)
@@ -209,4 +210,4 @@ else:
             st.rerun()
         st.markdown("</div>", unsafe_allow_html=True)
 
-st.markdown("<p style='text-align:center; color:#475569; font-size:12px;'>Powered by Groq Llama-3 & Nexus Core</p>", unsafe_allow_html=True)
+st.markdown("<p style='text-align:center; color:#475569; font-size:12px;'>Powered by Groq Llama-3.3 & Nexus Core</p>", unsafe_allow_html=True)
