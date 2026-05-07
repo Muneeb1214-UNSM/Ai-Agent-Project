@@ -8,7 +8,6 @@ from dotenv import load_dotenv
 
 # --- BACKEND: API SETUP ---
 load_dotenv()
-# Sabse pehle environment se key uthayega, phir Streamlit Secrets se
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 try:
     if not GROQ_API_KEY and "GROQ_API_KEY" in st.secrets:
@@ -19,16 +18,16 @@ except:
 # --- PAGE CONFIG ---
 st.set_page_config(page_title="Nexus AI Agent", page_icon="🌐", layout="centered")
 
-# --- UI DESIGN: PREMIUM GLASSMORPHISM (HTML/CSS) ---
+# --- ADVANCED ANIMATED UI (HTML/CSS) ---
 st.markdown(f"""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap');
     
     * {{ font-family: 'Plus Jakarta Sans', sans-serif; }}
 
-    /* Animated Gradient Background */
+    /* Animated Background Gradient */
     .stApp {{
-        background: linear-gradient(-45deg, #0f172a, #1e293b, #334155, #1e1b4b);
+        background: linear-gradient(-45deg, #0f172a, #1e1b4b, #581c87, #1e293b);
         background-size: 400% 400%;
         animation: gradient 15s ease infinite;
     }}
@@ -39,54 +38,85 @@ st.markdown(f"""
         100% {{ background-position: 0% 50%; }}
     }}
 
-    /* Glassmorphism Card */
+    /* Glassmorphism Card with Animation */
     .glass-card {{
-        background: rgba(255, 255, 255, 0.05);
+        background: rgba(255, 255, 255, 0.03);
         border-radius: 24px;
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
+        backdrop-filter: blur(15px);
+        -webkit-backdrop-filter: blur(15px);
         border: 1px solid rgba(255, 255, 255, 0.1);
-        padding: 40px;
+        padding: 35px;
         color: white;
         margin-bottom: 25px;
-        box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        animation: fadeIn 1.5s ease-out;
+    }}
+
+    @keyframes fadeIn {{
+        from {{ opacity: 0; transform: translateY(20px); }}
+        to {{ opacity: 1; transform: translateY(0); }}
     }}
 
     .title-text {{
-        background: linear-gradient(to right, #60a5fa, #a78bfa);
+        background: linear-gradient(to right, #818cf8, #c084fc, #fb7185);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
-        font-size: 55px;
+        font-size: 60px;
         font-weight: 800;
         text-align: center;
-        margin-bottom: 5px;
+        letter-spacing: -2px;
+        margin-bottom: 0px;
     }}
 
+    /* Custom Input Styling */
     .stTextInput>div>div>input {{
-        background: rgba(255,255,255,0.1) !important;
+        background: rgba(255,255,255,0.05) !important;
         color: white !important;
-        border-radius: 12px !important;
+        border-radius: 15px !important;
         border: 1px solid rgba(255,255,255,0.2) !important;
-        height: 55px;
+        transition: 0.3s;
+    }}
+    .stTextInput>div>div>input:focus {{
+        border: 1px solid #818cf8 !important;
+        box-shadow: 0 0 15px rgba(129, 140, 248, 0.4) !important;
     }}
 
+    /* Premium Button */
     .stButton>button {{
         background: linear-gradient(90deg, #6366f1, #a855f7) !important;
         color: white !important;
-        border-radius: 12px !important;
+        border-radius: 15px !important;
         font-weight: 700 !important;
         border: none !important;
-        width: 100%;
         height: 55px;
-        transition: 0.4s ease;
+        width: 100%;
+        transition: 0.5s all ease;
     }}
-
     .stButton>button:hover {{
-        transform: scale(1.02);
-        box-shadow: 0 0 20px rgba(99, 102, 241, 0.6);
+        transform: translateY(-3px) scale(1.02);
+        box-shadow: 0 10px 20px rgba(168, 85, 247, 0.4);
     }}
 
-    [data-testid="stMetricValue"] {{ color: #4ade80 !important; font-size: 60px !important; }}
+    /* Hide Streamlit Elements */
+    #MainMenu {{visibility: hidden;}}
+    footer {{visibility: hidden;}}
+    header {{visibility: hidden;}}
+
+    /* Custom Footer */
+    .footer {{
+        position: relative;
+        text-align: center;
+        padding: 50px 0 20px 0;
+        color: rgba(255,255,255,0.4);
+        font-size: 14px;
+        font-weight: 400;
+    }}
+    .flag-icon {{
+        width: 20px;
+        vertical-align: middle;
+        margin-left: 5px;
+    }}
+
     </style>
     """, unsafe_allow_html=True)
 
@@ -95,63 +125,60 @@ if 'data' not in st.session_state: st.session_state.data = None
 if 'step' not in st.session_state: st.session_state.step = 0
 if 'score' not in st.session_state: st.session_state.score = 0
 
-# --- CORE ENGINE: NEXUS AI (Fixed Model Name) ---
+# --- CORE ENGINE: NEXUS AI (Using Llama 3.3) ---
 def nexus_ai_engine(topic, lang):
     if not GROQ_API_KEY:
-        st.error("System Error: GROQ_API_KEY missing. Please add it to Secrets.")
+        st.error("System Error: GROQ_API_KEY missing in Secrets.")
         return None
     
-    # NEW MODEL: 'llama-3.3-70b-versatile' is smarter and supported
-    # Alternative: 'llama-3.1-8b-instant' (faster)
+    llm = ChatGroq(model="llama-3.3-70b-versatile", groq_api_key=GROQ_API_KEY)
+    
+    prompt = f"""
+    You are 'Nexus AI', a world-class autonomous tutor. 
+    Topic: {topic}. Language: {lang}.
+
+    1. Break into 3 modules: Beginner, Intermediate, Advanced.
+    2. Write detailed content in Hinglish (Roman Urdu + English).
+    3. 1 MCQ per module.
+    4. 7-Day execution plan.
+
+    Output STRICTLY in JSON format:
+    {{
+        "plan": "...",
+        "modules": [
+            {{
+                "level": "...",
+                "title": "...",
+                "content": "...",
+                "quiz": {{"q": "...", "options": ["a", "b", "c"], "a": "..."}}
+            }}
+        ]
+    }}
+    """
+    
     try:
-        llm = ChatGroq(model="llama-3.3-70b-versatile", groq_api_key=GROQ_API_KEY)
-        
-        prompt = f"""
-        You are 'Nexus AI', a world-class autonomous tutor. 
-        User Topic: {topic}. 
-        Instruction Language: {lang}.
-
-        1. Break the topic into 3 logical modules: Beginner, Intermediate, Advanced.
-        2. Write content in a mix of Urdu and English (Hinglish) for better understanding.
-        3. Generate 1 MCQ per module.
-        4. Provide a 7-day study plan.
-
-        Output STRICTLY in JSON:
-        {{
-            "plan": "...",
-            "modules": [
-                {{
-                    "level": "...",
-                    "title": "...",
-                    "content": "...",
-                    "quiz": {{"q": "...", "options": ["a", "b", "c"], "a": "..."}}
-                }}
-            ]
-        }}
-        """
-        
-        response = llm.invoke([SystemMessage(content="You are Nexus AI. Respond ONLY in valid JSON."), HumanMessage(content=prompt)])
+        response = llm.invoke([SystemMessage(content="You are Nexus AI. JSON ONLY."), HumanMessage(content=prompt)])
         clean_content = response.content.replace("```json", "").replace("```", "").strip()
         return json.loads(clean_content)
     except Exception as e:
-        st.error(f"Agent Error: {e}")
+        st.error(f"Agent Connectivity Issue: {e}")
         return None
 
-# --- UI LOGIC ---
+# --- UI CONTENT ---
 
 st.markdown("<h1 class='title-text'>NEXUS AI</h1>", unsafe_allow_html=True)
-st.markdown("<p style='text-align:center; color:#94a3b8; margin-bottom:40px;'>Empowering Global Intelligence Autonomously</p>", unsafe_allow_html=True)
+st.markdown("<p style='text-align:center; color:#94a3b8; margin-bottom:40px; font-weight:300;'>Redefining Autonomous Education</p>", unsafe_allow_html=True)
 
 if st.session_state.data is None:
-    # --- LANDING VIEW ---
+    # --- LANDING PAGE ---
     st.markdown("<div class='glass-card'>", unsafe_allow_html=True)
     st.subheader("What do you want to master today?")
-    topic_input = st.text_input("", placeholder="e.g. Artificial Intelligence, Stock Market, Mughal History")
-    selected_lang = st.selectbox("Preferred Language", ["English", "Urdu/Hindi", "Spanish", "French"])
+    topic_input = st.text_input("", placeholder="e.g. Quantum Physics, Web Development, Mughal Empire")
+    selected_lang = st.selectbox("Choose Language", ["English", "Urdu/Hindi", "Spanish", "French"])
     
-    if st.button("INITIALIZE LEARNING 🚀"):
+    if st.button("INITIALIZE NEURAL LINK 🚀"):
         if topic_input:
-            with st.spinner("Nexus AI is generating your customized curriculum..."):
+            with st.spinner("Nexus AI is architecting your curriculum..."):
                 result = nexus_ai_engine(topic_input, selected_lang)
                 if result:
                     st.session_state.data = result
@@ -161,7 +188,7 @@ if st.session_state.data is None:
     st.markdown("</div>", unsafe_allow_html=True)
 
 else:
-    # --- LEARNING VIEW ---
+    # --- LEARNING DASHBOARD ---
     modules = st.session_state.data['modules']
     idx = st.session_state.step
     
@@ -171,43 +198,18 @@ else:
         
         st.markdown(f"""
             <div class='glass-card'>
-                <h2 style='color:#60a5fa;'>{mod['title']}</h2>
-                <p style='font-size: 1.15rem; line-height: 1.7;'>{mod['content']}</p>
+                <h4 style='color:#818cf8; margin-bottom:0;'>MODULE {idx+1}</h4>
+                <h2 style='margin-top:0; font-weight:800; color:white;'>{mod['title']}</h2>
+                <hr style='opacity:0.1; margin: 20px 0;'>
+                <p style='font-size: 1.15rem; line-height: 1.8; color:#cbd5e1;'>{mod['content']}</p>
             </div>
         """, unsafe_allow_html=True)
         
         st.markdown("<div class='glass-card'>", unsafe_allow_html=True)
         st.subheader("⚡ Quick Assessment")
         st.write(mod['quiz']['q'])
-        user_choice = st.radio("Pick your answer:", mod['quiz']['options'], key=f"q_{idx}")
+        user_choice = st.radio("Choose the correct option:", mod['quiz']['options'], key=f"q_{idx}")
         
-        if st.button("VERIFY & NEXT ➡️"):
+        if st.button("VERIFY & CONTINUE ➡️"):
             if user_choice == mod['quiz']['a']:
                 st.session_state.score += 1
-                st.toast("Correct!", icon="✅")
-            else:
-                st.toast(f"Incorrect. Answer: {mod['quiz']['a']}", icon="❌")
-            
-            time.sleep(0.5)
-            st.session_state.step += 1
-            st.rerun()
-        st.markdown("</div>", unsafe_allow_html=True)
-        
-    else:
-        # --- FINAL RESULTS ---
-        st.balloons()
-        st.markdown("<div class='glass-card' style='text-align:center;'>", unsafe_allow_html=True)
-        st.header("Mastery Achieved!")
-        accuracy = int((st.session_state.score / len(modules)) * 100)
-        st.metric("Proficiency", f"{accuracy}%")
-        st.subheader("🗓️ Study Plan")
-        st.info(st.session_state.data['plan'])
-        
-        if st.button("START NEW TOPIC"):
-            st.session_state.data = None
-            st.session_state.step = 0
-            st.session_state.score = 0
-            st.rerun()
-        st.markdown("</div>", unsafe_allow_html=True)
-
-st.markdown("<p style='text-align:center; color:#475569; font-size:12px;'>Powered by Groq Llama-3.3 & Nexus Core</p>", unsafe_allow_html=True)
