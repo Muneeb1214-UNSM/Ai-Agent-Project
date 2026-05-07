@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nexus AI | The Future of Learning</title>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap');
+
+        :root {
+            --primary: #6366f1;
+            --secondary: #a855f7;
+            --dark: #0f172a;
+            --light: #f8fafc;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        body {
+            background-color: var(--dark);
+            color: var(--light);
+            overflow-x: hidden;
+        }
+
+        /* Animated Background */
+        .bg-animate {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 50% 50%, #1e1b4b 0%, #0f172a 100%);
+            z-index: -1;
+        }
+
+        .blob {
+            position: absolute;
+            width: 500px;
+            height: 500px;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            filter: blur(100px);
+            border-radius: 50%;
+            opacity: 0.15;
+            animation: move 20s infinite alternate;
+        }
+
+        @keyframes move {
+            from { transform: translate(-10%, -10%); }
+            to { transform: translate(20%, 20%); }
+        }
+
+        /* Navbar */
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            padding: 30px 10%;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 26px;
+            font-weight: 800;
+            letter-spacing: -1px;
+            background: linear-gradient(to right, #818cf8, #c084fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Hero Section */
+        .hero {
+            height: 85vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 0 10%;
+        }
+
+        .hero h1 {
+            font-size: clamp(40px, 8vw, 80px);
+            line-height: 1.1;
+            margin-bottom: 20px;
+            font-weight: 800;
+        }
+
+        .hero h1 span {
+            background: linear-gradient(to right, #6366f1, #a855f7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 0 20px rgba(99, 102, 241, 0.3));
+        }
+
+        .hero p {
+            font-size: clamp(16px, 2vw, 20px);
+            color: #94a3b8;
+            margin-bottom: 40px;
+            max-width: 750px;
+            line-height: 1.6;
+        }
+
+        .launch-btn {
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 20px 50px;
+            border-radius: 100px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 18px;
+            box-shadow: 0 10px 30px rgba(99, 102, 241, 0.4);
+            transition: 0.4s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .launch-btn:hover {
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 15px 40px rgba(168, 85, 247, 0.5);
+        }
+
+        /* Features Section */
+        .features {
+            padding: 80px 10%;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+        }
+
+        .feature-card {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.08);
+            padding: 40px;
+            border-radius: 30px;
+            transition: 0.3s;
+            backdrop-filter: blur(10px);
+        }
+
+        .feature-card:hover {
+            border-color: var(--primary);
+            background: rgba(255,255,255,0.05);
+            transform: translateY(-10px);
+        }
+
+        .feature-card i {
+            font-size: 45px;
+            color: #818cf8;
+            margin-bottom: 25px;
+            display: block;
+        }
+
+        .feature-card h3 {
+            font-size: 22px;
+            margin-bottom: 15px;
+            font-weight: 700;
+        }
+
+        .feature-card p {
+            color: #64748b;
+            line-height: 1.7;
+        }
+
+        /* Footer */
+        .footer {
+            padding: 60px 10%;
+            text-align: center;
+            border-top: 1px solid rgba(255,255,255,0.05);
+            color: #475569;
+            font-size: 14px;
+        }
+
+        .footer b { color: #94a3b8; }
+        .flag { width: 22px; vertical-align: middle; margin-left: 6px; border-radius: 2px; }
+
+    </style>
+</head>
+<body>
+
+    <div class="bg-animate"></div>
+    <div class="blob"></div>
+
+    <nav class="navbar">
+        <div class="logo">NEXUS AI</div>
+        <div style="color: #475569; font-weight: 600; font-size: 13px; text-transform: uppercase; letter-spacing: 1px;">Autonomous Learning Exec</div>
+    </nav>
+
+    <header class="hero">
+        <h1>Master Any Topic <span>Autonomously</span></h1>
+        <p>Step into the future of education with Nexus AI. An autonomous agent that architects your curriculum, tests your depth, and provides professor-level analytics.</p>
+        
+        <!-- APKA STREAMLIT URL YAHAN HAI -->
+        <a href="https://ai-agent-project-om9ekvwzuf34y4qjgy438h.streamlit.app/" target="_blank" class="launch-btn">
+            LAUNCH AI AGENT <i class="ph-bold ph-rocket-launch"></i>
+        </a>
+    </header>
+
+    <section class="features">
+        <div class="feature-card">
+            <i class="ph-bold ph-brain"></i>
+            <h3>Smart Chunking</h3>
+            <p>Automatically divides any topic into Beginner, Intermediate, and Advanced tiers for structured learning.</p>
+        </div>
+        <div class="feature-card">
+            <i class="ph-bold ph-pencil-circle"></i>
+            <h3>Subjective Grading</h3>
+            <p>Go beyond MCQs. Type your answers and let the AI analyze your conceptual depth and logic.</p>
+        </div>
+        <div class="feature-card">
+            <i class="ph-bold ph-chart-bar"></i>
+            <h3>Performance Insights</h3>
+            <p>Receive detailed proficiency scores, letter grades, and constructive feedback from our AI Professor.</p>
+        </div>
+        <div class="feature-card">
+            <i class="ph-bold ph-calendar-star"></i>
+            <h3>7-Day Roadmap</h3>
+            <p>Get a personalized day-by-day execution plan to solidify your mastery over the chosen subject.</p>
+        </div>
+    </section>
+
+    <footer class="footer">
+        Made with ❤️ by <b>Pakistan</b> 
+        <img src="https://upload.wikimedia.org/wikipedia/commons/3/32/Flag_of_Pakistan.svg" class="flag">
+        <br><br>
+        Nexus AI Agent Core v4.0 © 2024 | All Rights Reserved
+    </footer>
+
+</body>
+</html>
