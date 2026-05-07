@@ -2,17 +2,17 @@ import streamlit as st
 import os
 import json
 import time
-from langchain_openai import ChatOpenAI
+from langchain_groq import ChatGroq
 from langchain_core.messages import HumanMessage, SystemMessage
 from dotenv import load_dotenv
 
 # --- BACKEND: API SETUP ---
 load_dotenv()
 # Sabse pehle environment se key uthayega, phir Streamlit Secrets se
-API_KEY = os.getenv("OPENAI_API_KEY")
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 try:
-    if not API_KEY and "OPENAI_API_KEY" in st.secrets:
-        API_KEY = st.secrets["OPENAI_API_KEY"]
+    if not GROQ_API_KEY and "GROQ_API_KEY" in st.secrets:
+        GROQ_API_KEY = st.secrets["GROQ_API_KEY"]
 except:
     pass
 
@@ -62,7 +62,6 @@ st.markdown(f"""
         margin-bottom: 5px;
     }}
 
-    /* Customizing Streamlit Widgets to match UI */
     .stTextInput>div>div>input {{
         background: rgba(255,255,255,0.1) !important;
         color: white !important;
@@ -87,31 +86,23 @@ st.markdown(f"""
         box-shadow: 0 0 20px rgba(99, 102, 241, 0.6);
     }}
 
-    .quiz-option {{
-        background: rgba(255,255,255,0.05);
-        padding: 10px;
-        border-radius: 10px;
-        margin-bottom: 5px;
-    }}
-
-    /* Success Metric */
     [data-testid="stMetricValue"] {{ color: #4ade80 !important; font-size: 60px !important; }}
-
     </style>
     """, unsafe_allow_html=True)
 
-# --- SESSION STATE INITIALIZATION ---
+# --- SESSION STATE ---
 if 'data' not in st.session_state: st.session_state.data = None
 if 'step' not in st.session_state: st.session_state.step = 0
 if 'score' not in st.session_state: st.session_state.score = 0
 
-# --- CORE ENGINE: NEXUS AI AGENT ---
+# --- CORE ENGINE: NEXUS AI (USING GROQ) ---
 def nexus_ai_engine(topic, lang):
-    if not API_KEY:
-        st.error("System Error: API Key missing from configuration.")
+    if not GROQ_API_KEY:
+        st.error("System Error: GROQ_API_KEY missing. Please add it to Secrets.")
         return None
     
-    llm = ChatOpenAI(model="gpt-4o-mini", api_key=API_KEY)
+    # Llama 3 model is free and extremely fast on Groq
+    llm = ChatGroq(model="llama3-70b-8192", groq_api_key=GROQ_API_KEY)
     
     prompt = f"""
     You are 'Nexus AI', a world-class autonomous tutor. 
@@ -121,7 +112,7 @@ def nexus_ai_engine(topic, lang):
     1. Break the topic into 3 logical modules: Beginner, Intermediate, Advanced.
     2. Write content in a mix of Urdu and English (Hinglish) for better understanding.
     3. Generate 1 MCQ per module.
-    4. Provide a 7-day study plan at the end.
+    4. Provide a 7-day study plan.
 
     Output STRICTLY in JSON:
     {{
@@ -138,29 +129,28 @@ def nexus_ai_engine(topic, lang):
     """
     
     try:
-        response = llm.invoke([SystemMessage(content="You are Nexus AI, an expert educational agent."), HumanMessage(content=prompt)])
+        response = llm.invoke([SystemMessage(content="You are Nexus AI. Respond ONLY in valid JSON."), HumanMessage(content=prompt)])
         clean_content = response.content.replace("```json", "").replace("```", "").strip()
         return json.loads(clean_content)
     except Exception as e:
-        st.error(f"Agent Connection Error: {e}")
+        st.error(f"Agent Error: {e}")
         return None
 
 # --- UI LOGIC ---
 
-# Header
 st.markdown("<h1 class='title-text'>NEXUS AI</h1>", unsafe_allow_html=True)
-st.markdown("<p style='text-align:center; color:#94a3b8; margin-bottom:40px;'>The Future of Autonomous Learning</p>", unsafe_allow_html=True)
+st.markdown("<p style='text-align:center; color:#94a3b8; margin-bottom:40px;'>Empowering Global Intelligence Autonomously</p>", unsafe_allow_html=True)
 
 if st.session_state.data is None:
     # --- LANDING VIEW ---
     st.markdown("<div class='glass-card'>", unsafe_allow_html=True)
-    st.subheader("What do you want to learn today?")
-    topic_input = st.text_input("", placeholder="e.g. Black Holes, Python Coding, ya History")
-    selected_lang = st.selectbox("Preferred Language", ["English", "Urdu/Hindi", "Spanish", "Arabic"])
+    st.subheader("What do you want to master today?")
+    topic_input = st.text_input("", placeholder="e.g. Artificial Intelligence, Stock Market, Mughal History")
+    selected_lang = st.selectbox("Preferred Language", ["English", "Urdu/Hindi", "Spanish", "French"])
     
-    if st.button("INITIALIZE MASTERCLASS 🚀"):
+    if st.button("INITIALIZE LEARNING 🚀"):
         if topic_input:
-            with st.spinner("Nexus AI is architecting your curriculum..."):
+            with st.spinner("Nexus AI is generating your customized curriculum..."):
                 result = nexus_ai_engine(topic_input, selected_lang)
                 if result:
                     st.session_state.data = result
@@ -176,32 +166,26 @@ else:
     
     if idx < len(modules):
         mod = modules[idx]
-        
-        # Progress Bar
         st.progress((idx + 1) / len(modules))
-        st.write(f"Module {idx+1} of {len(modules)} | **{mod['level']}**")
-
-        # Lesson Card
+        
         st.markdown(f"""
             <div class='glass-card'>
                 <h2 style='color:#60a5fa;'>{mod['title']}</h2>
-                <hr style='opacity:0.2;'>
                 <p style='font-size: 1.15rem; line-height: 1.7;'>{mod['content']}</p>
             </div>
         """, unsafe_allow_html=True)
         
-        # Quiz Section
         st.markdown("<div class='glass-card'>", unsafe_allow_html=True)
         st.subheader("⚡ Quick Assessment")
         st.write(mod['quiz']['q'])
-        user_choice = st.radio("Choose the correct answer:", mod['quiz']['options'], key=f"q_{idx}")
+        user_choice = st.radio("Pick your answer:", mod['quiz']['options'], key=f"q_{idx}")
         
-        if st.button("VERIFY & NEXT MODULE ➡️"):
+        if st.button("VERIFY & NEXT ➡️"):
             if user_choice == mod['quiz']['a']:
                 st.session_state.score += 1
-                st.toast("Correct Answer!", icon="✅")
+                st.toast("Correct!", icon="✅")
             else:
-                st.toast(f"Incorrect. Correct was: {mod['quiz']['a']}", icon="❌")
+                st.toast(f"Incorrect. Answer: {mod['quiz']['a']}", icon="❌")
             
             time.sleep(0.5)
             st.session_state.step += 1
@@ -209,24 +193,20 @@ else:
         st.markdown("</div>", unsafe_allow_html=True)
         
     else:
-        # --- FINAL RESULTS VIEW ---
+        # --- FINAL RESULTS ---
         st.balloons()
         st.markdown("<div class='glass-card' style='text-align:center;'>", unsafe_allow_html=True)
-        st.markdown("<h1 style='font-size:80px;'>🎓</h1>", unsafe_allow_html=True)
         st.header("Mastery Achieved!")
-        
         accuracy = int((st.session_state.score / len(modules)) * 100)
-        st.metric("Proficiency Score", f"{accuracy}%")
-        
-        st.subheader("🗓️ 7-Day Execution Plan")
+        st.metric("Proficiency", f"{accuracy}%")
+        st.subheader("🗓️ Study Plan")
         st.info(st.session_state.data['plan'])
         
-        if st.button("EXPLORE NEW TOPIC"):
+        if st.button("START NEW TOPIC"):
             st.session_state.data = None
             st.session_state.step = 0
             st.session_state.score = 0
             st.rerun()
         st.markdown("</div>", unsafe_allow_html=True)
 
-# Footer
-st.markdown("<p style='text-align:center; color:#475569; font-size:12px; margin-top:50px;'>Nexus AI Agent Core v1.0 | International Edition</p>", unsafe_allow_html=True)
+st.markdown("<p style='text-align:center; color:#475569; font-size:12px;'>Powered by Groq Llama-3 & Nexus Core</p>", unsafe_allow_html=True)
